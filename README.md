@@ -21,8 +21,6 @@ Items that have not ended yet appear as callouts at the top of the page.
 Closed items drop into the **Past incidents & announcements** timeline, newest
 first, filterable by service, type, severity and free text.
 
----
-
 ## Quick start: report an incident
 
 1. Go to [`_incidents/`](_incidents/) and click **Add file → Create new file**.
@@ -78,8 +76,6 @@ For an announcement, `start` is when it becomes relevant and `end` is when it
 stops being current (the end of a maintenance window, a deadline, the last day
 of a call). Without an `end`, it stays pinned at the top forever — occasionally
 what you want, usually not.
-
----
 
 ## Front matter reference
 
@@ -149,8 +145,6 @@ updates:
 `status` is free text — `Investigating`, `Identified`, `Monitoring`,
 `Resolved` are the usual suspects.
 
----
-
 ## How "ongoing" is decided
 
 Purely from the timestamps, in the reader's browser:
@@ -171,7 +165,6 @@ Jekyll still renders the state as it was at build time, so the page is complete
 and correct with JavaScript disabled — it is then simply as fresh as the last
 deploy.
 
----
 
 ## Working on it locally
 
@@ -212,7 +205,6 @@ edit [`assets/css/tailwind.css`](assets/css/tailwind.css) instead.
 It also prints warnings (empty body, missing summary, odd file name) that do
 not block a merge.
 
----
 
 ## Repository layout
 
