@@ -1,0 +1,60 @@
+# The one controlled vocabulary of this site.
+#
+#   _incidents/*.md      ->  severity: critical | degraded
+#   _announcements/*.md  ->  type: maintenance | info
+#
+# Incidents are things that broke. Announcements are things we planned or want
+# to tell you. `applies_to` below is what the pull request check enforces.
+#
+# `rank` decides which entry wins the banner at the top of the page; anything
+# ranked below 10 never changes a service's badge in the services grid.
+# The class fields are Tailwind class strings - keep them literal, both
+# Tailwind and the browser read them as-is.
+
+critical:
+  label: Critical
+  applies_to: incident
+  rank: 30
+  icon: circle-alert
+  description: The service is down or unusable, or data is at risk.
+  badge: bg-rose-50 text-rose-700 ring-rose-600/20
+  dot: bg-rose-500
+  card: border-rose-200 bg-rose-50/70
+  icon_bg: bg-rose-100
+  icon_text: text-rose-600
+
+degraded:
+  label: Degraded
+  applies_to: incident
+  rank: 20
+  icon: triangle-alert
+  description: The service still works, but it is slow, flaky or partially broken.
+  badge: bg-amber-50 text-amber-700 ring-amber-600/20
+  dot: bg-amber-500
+  card: border-amber-200 bg-amber-50/70
+  icon_bg: bg-amber-100
+  icon_text: text-amber-600
+
+maintenance:
+  label: Maintenance
+  applies_to: announcement
+  rank: 10
+  icon: wrench
+  description: Planned work, with downtime or disruption to be expected.
+  badge: bg-sky-50 text-sky-700 ring-sky-600/20
+  dot: bg-sky-500
+  card: border-sky-200 bg-sky-50/70
+  icon_bg: bg-sky-100
+  icon_text: text-sky-600
+
+info:
+  label: Info
+  applies_to: announcement
+  rank: 0
+  icon: megaphone
+  description: News or a heads-up, no impact on availability.
+  badge: bg-teal-50 text-teal-700 ring-teal-600/20
+  dot: bg-teal-500
+  card: border-teal-200 bg-teal-50/70
+  icon_bg: bg-teal-100
+  icon_text: text-teal-600

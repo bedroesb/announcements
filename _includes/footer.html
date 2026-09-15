@@ -1,0 +1,48 @@
+<footer class="mt-20 border-t border-slate-200 bg-white">
+  <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+      <div class="max-w-md">
+        <p class="text-sm font-semibold text-vib-900">{{ site.org.name }}</p>
+        <p class="mt-1 text-sm text-slate-500">
+          This page is generated from Markdown files in a public Git repository.
+          Spotted something missing or wrong? Open a pull request.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2 text-sm">
+        <a href="{{ site.org.url }}" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-slate-600 transition hover:text-vib-600">
+          {% include icon.html name="square-arrow-out-up-right" class="h-4 w-4" %}
+          {{ site.org.name }} website
+        </a>
+        <a href="{{ site.repo }}" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-slate-600 transition hover:text-vib-600">
+          {% include icon.html name="book-open" class="h-4 w-4" %}
+          How to report an incident
+        </a>
+        <a href="{{ '/feed.xml' | relative_url }}"
+           class="inline-flex items-center gap-1.5 text-slate-600 transition hover:text-vib-600">
+          {% include icon.html name="rss" class="h-4 w-4" %}
+          Atom feed
+        </a>
+        {%- if site.org.support_email %}
+        <a href="mailto:{{ site.org.support_email }}"
+           class="inline-flex items-center gap-1.5 text-slate-600 transition hover:text-vib-600">
+          {% include icon.html name="bell" class="h-4 w-4" %}
+          {{ site.org.support_email }}
+        </a>
+        {%- endif %}
+      </div>
+    </div>
+
+    <div class="mt-8 flex flex-col gap-2 border-t border-slate-100 pt-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+      <p>&copy; {{ site.time | date: "%Y" }} {{ site.org.name }}. Icons by <a href="https://lucide.dev" rel="noopener" class="underline decoration-slate-300 underline-offset-2 hover:text-slate-600">Lucide</a> (ISC).</p>
+      <p>
+        Page built
+        <time datetime="{{ site.time | date_to_xmlschema }}" data-relative="{{ site.time | date_to_xmlschema }}">
+          {{ site.time | date: "%-d %B %Y, %H:%M %Z" }}
+        </time>
+      </p>
+    </div>
+  </div>
+</footer>

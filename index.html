@@ -1,0 +1,263 @@
+---
+layout: default
+title: Service status
+---
+
+{%- comment -%}
+  The initial split below is made at build time so the page is correct without
+  JavaScript. assets/js/status.js recomputes it in the browser on every load,
+  so an entry moves to the history timeline the moment its end time passes -
+  no rebuild needed.
+{%- endcomment -%}
+{%- assign all_entries = site.incidents | concat: site.announcements -%}
+{%- assign open_ended = all_entries | where_exp: "e", "e.end == nil" -%}
+{%- assign future_end = all_entries | where_exp: "e", "e.end != nil and e.end > site.time" -%}
+{%- assign live = open_ended | concat: future_end -%}
+{%- assign ongoing = live | where_exp: "e", "e.start <= site.time" | sort: "start" | reverse -%}
+{%- assign upcoming = live | where_exp: "e", "e.start > site.time" | sort: "start" -%}
+{%- assign past = all_entries | where_exp: "e", "e.end != nil and e.end <= site.time" | sort: "start" | reverse -%}
+{%- assign ongoing_incidents = ongoing | where: "kind", "incident" -%}
+
+{%- assign worst_rank = -1 -%}
+{%- assign worst_key = "" -%}
+{%- for e in ongoing_incidents -%}
+  {%- assign k = e.severity | default: "info" -%}
+  {%- assign r = site.data.levels[k].rank | default: 0 -%}
+  {%- if r > worst_rank -%}
+    {%- assign worst_rank = r -%}
+    {%- assign worst_key = k -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<!-- Vocabulary + icons handed to the browser, so JS never hard-codes colours -->
+<script type="application/json" id="levels-data">{{ site.data.levels | jsonify }}</script>
+<template id="icon-ok">{% include icon.html name="circle-check" class="h-6 w-6" %}</template>
+{%- for lvl in site.data.levels %}
+{%- assign lvl_key = lvl[0] -%}
+{%- assign lvl_icon = lvl[1].icon -%}
+<template id="icon-{{ lvl_key }}">{% include icon.html name=lvl_icon class="h-6 w-6" %}</template>
+{%- endfor %}
+<template id="pill-ongoing">{% include icon.html name="radio" class="h-3.5 w-3.5" %}</template>
+<template id="pill-scheduled">{% include icon.html name="calendar-days" class="h-3.5 w-3.5" %}</template>
+<template id="pill-closed">{% include icon.html name="check" class="h-3.5 w-3.5" %}</template>
+<template id="pill-close">{% include icon.html name="x" class="h-3 w-3 opacity-60" %}</template>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+<section class="relative isolate overflow-hidden bg-gradient-to-br from-vib-950 via-vib-900 to-vib-800">
+  <div class="grid-pattern absolute inset-0 opacity-50" aria-hidden="true"></div>
+  <div class="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-vib-accent/20 blur-3xl" aria-hidden="true"></div>
+
+  <div class="relative mx-auto max-w-5xl px-4 pb-24 pt-14 sm:px-6 sm:pb-28 sm:pt-20">
+    <!-- <p class="text-xs font-semibold uppercase tracking-[0.2em] text-vib-accent">{{ site.org.name }}</p>
+    <h1 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Service status &amp; announcements</h1>
+    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-vib-100/80 sm:text-base">{{ site.description }}</p> -->
+
+    <div class="rounded-2xl bg-white/10 p-1.5 ring-1 ring-inset ring-white/15 backdrop-blur-sm">
+      <div class="flex flex-col gap-4 rounded-xl bg-white px-5 py-4 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-4">
+          {%- if ongoing_incidents.size > 0 -%}
+            {%- assign worst = site.data.levels[worst_key] -%}
+            <span id="status-icon" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl {{ worst.icon_bg }} {{ worst.icon_text }}">
+              {%- include icon.html name=worst.icon class="h-6 w-6" -%}
+            </span>
+            <div>
+              <p id="status-headline" class="text-lg font-semibold tracking-tight text-slate-900">
+                {{ ongoing_incidents.size }} ongoing incident{% if ongoing_incidents.size > 1 %}s{% endif %}
+              </p>
+              <p id="status-sub" class="mt-0.5 text-sm text-slate-500">{{ worst.description }}</p>
+            </div>
+          {%- else -%}
+            <span id="status-icon" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+              {%- include icon.html name="circle-check" class="h-6 w-6" -%}
+            </span>
+            <div>
+              <p id="status-headline" class="text-lg font-semibold tracking-tight text-slate-900">All systems operational</p>
+              <p id="status-sub" class="mt-0.5 text-sm text-slate-500">No ongoing incidents.</p>
+            </div>
+          {%- endif -%}
+        </div>
+        <a id="status-action" href="{% if ongoing_incidents.size > 0 %}#active{% else %}#history{% endif %}"
+           class="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg bg-vib-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-vib-800 sm:self-auto">
+          <span id="status-action-label">{% if ongoing_incidents.size > 0 %}View details{% else %}View history{% endif %}</span>
+          {%- include icon.html name="chevron-right" class="h-4 w-4" -%}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Services overview ────────────────────────────────────────────────── -->
+<section aria-labelledby="services-heading" class="relative mx-auto -mt-14 max-w-5xl px-4 sm:px-6">
+  <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="flex items-center justify-between gap-4">
+      <h2 id="services-heading" class="text-xs font-semibold uppercase tracking-widest text-slate-500">Services</h2>
+      <p class="text-xs text-slate-400">Select a service to filter the history</p>
+    </div>
+
+    <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      {%- for svc in site.data.services -%}
+        {%- assign svc_rank = 0 -%}
+        {%- assign svc_key = "" -%}
+        {%- for e in ongoing -%}
+          {%- if e.services_affected contains svc.id -%}
+            {%- assign k = e.severity | default: e.type | default: "info" -%}
+            {%- assign r = site.data.levels[k].rank | default: 0 -%}
+            {%- comment -%}Purely informational entries do not change a service badge.{%- endcomment -%}
+            {%- if r > svc_rank and r >= 10 -%}
+              {%- assign svc_rank = r -%}
+              {%- assign svc_key = k -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if svc_key == "" -%}
+          {%- assign svc_dot = "bg-emerald-500" -%}
+          {%- assign svc_status = "Operational" -%}
+        {%- else -%}
+          {%- assign svc_dot = site.data.levels[svc_key].dot -%}
+          {%- assign svc_status = site.data.levels[svc_key].label -%}
+        {%- endif -%}
+
+        <li>
+          <a href="?services={{ svc.id | uri_escape }}#history"
+             data-service-filter="{{ svc.id }}"
+             class="js-service-tile flex h-full items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5 transition hover:border-vib-200 hover:bg-vib-50">
+            <span class="js-service-dot h-2 w-2 shrink-0 rounded-full {{ svc_dot }}" aria-hidden="true"></span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-sm font-medium text-slate-800">{{ svc.name }}</span>
+              <span class="js-service-status block text-xs text-slate-500">{{ svc_status }}</span>
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+<!-- ── Happening now ────────────────────────────────────────────────────── -->
+<section id="active" aria-labelledby="active-heading" class="js-section mx-auto max-w-5xl scroll-mt-20 px-4 pt-12 sm:px-6"{% if ongoing.size == 0 %} hidden{% endif %}>
+  <div class="flex items-center gap-3">
+    <h2 id="active-heading" class="text-xl font-bold tracking-tight text-slate-900">Happening now</h2>
+    <span id="active-count" class="rounded-full bg-slate-900/5 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{{ ongoing.size }}</span>
+  </div>
+  <p class="mt-1 text-sm text-slate-500">Incidents and announcements that have not been closed yet.</p>
+
+  <ul id="active-list" class="mt-5">
+    {%- for e in ongoing -%}
+      {%- include entry-card.html entry=e placement="active" -%}
+    {%- endfor -%}
+  </ul>
+</section>
+
+<!-- ── Scheduled ────────────────────────────────────────────────────────── -->
+<section id="scheduled" aria-labelledby="scheduled-heading" class="js-section mx-auto max-w-5xl scroll-mt-20 px-4 pt-10 sm:px-6"{% if upcoming.size == 0 %} hidden{% endif %}>
+  <div class="flex items-center gap-3">
+    <h2 id="scheduled-heading" class="text-xl font-bold tracking-tight text-slate-900">Scheduled</h2>
+    <span id="scheduled-count" class="rounded-full bg-slate-900/5 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{{ upcoming.size }}</span>
+  </div>
+  <p class="mt-1 text-sm text-slate-500">Planned work and upcoming changes.</p>
+
+  <ul id="scheduled-list" class="mt-5">
+    {%- for e in upcoming -%}
+      {%- include entry-card.html entry=e placement="scheduled" -%}
+    {%- endfor -%}
+  </ul>
+</section>
+
+<!-- ── History ──────────────────────────────────────────────────────────── -->
+<section id="history" aria-labelledby="history-heading" class="mx-auto max-w-5xl scroll-mt-20 px-4 pt-14 sm:px-6">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h2 id="history-heading" class="text-xl font-bold tracking-tight text-slate-900">Past incidents &amp; announcements</h2>
+      <p class="mt-1 text-sm text-slate-500">Everything that has been closed, newest first.</p>
+    </div>
+    <p class="text-sm text-slate-500">
+      <span id="result-count" class="font-semibold text-slate-700">{{ past.size }}</span>
+      of <span id="total-count">{{ past.size }}</span> entries
+    </p>
+  </div>
+
+  <!-- Filter toolbar (progressively enhanced; without JS everything is shown) -->
+  <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div class="relative flex-1">
+        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+          {%- include icon.html name="search" class="h-4 w-4" -%}
+        </span>
+        <label for="search" class="sr-only">Search past incidents and announcements</label>
+        <input type="search" id="search" autocomplete="off" placeholder="Search title, description or service…"
+               class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-800 transition placeholder:text-slate-400 focus:border-vib-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-vib-100">
+        <button type="button" id="search-clear" hidden aria-label="Clear search"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 transition hover:text-slate-700">
+          {%- include icon.html name="x" class="h-4 w-4" -%}
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div id="kind-filter" role="group" aria-label="Filter by type"
+             class="inline-flex rounded-xl bg-slate-100 p-1 text-sm font-medium">
+          <button type="button" data-kind-filter="all" aria-pressed="true"
+                  class="rounded-lg px-3 py-1.5 transition">All</button>
+          <button type="button" data-kind-filter="incident" aria-pressed="false"
+                  class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition">
+            {%- include icon.html name="triangle-alert" class="h-3.5 w-3.5" -%}
+            Incidents
+          </button>
+          <button type="button" data-kind-filter="announcement" aria-pressed="false"
+                  class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition">
+            {%- include icon.html name="megaphone" class="h-3.5 w-3.5" -%}
+            Announcements
+          </button>
+        </div>
+
+        <div>
+          <label for="level-filter" class="sr-only">Filter by severity or type</label>
+          <select id="level-filter"
+                  class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition focus:border-vib-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-vib-100">
+            <option value="">Any severity or type</option>
+            {%- for lvl in site.data.levels -%}
+              <option value="{{ lvl[0] }}">{{ lvl[1].label }}</option>
+            {%- endfor -%}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="active-filters" class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3" hidden>
+      <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        {%- include icon.html name="funnel" class="h-3.5 w-3.5" -%}
+        Filters
+      </span>
+      <div id="filter-chips" class="flex flex-wrap items-center gap-2"></div>
+      <button type="button" id="clear-filters"
+              class="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">
+        {%- include icon.html name="x" class="h-3.5 w-3.5" -%}
+        Clear all
+      </button>
+    </div>
+  </div>
+
+  <ol id="timeline" class="mt-8">
+    {%- for e in past -%}
+      {%- include entry-card.html entry=e placement="history" -%}
+    {%- endfor -%}
+  </ol>
+
+  <p id="history-empty"{% if past.size > 0 %} hidden{% endif %}
+     class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
+    Nothing has been closed yet — the history fills up over time.
+  </p>
+
+  <div id="no-results" hidden
+       class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+    <p class="flex justify-center text-slate-300">
+      {%- include icon.html name="search" class="h-8 w-8" -%}
+    </p>
+    <p class="mt-3 text-sm font-medium text-slate-700">No entries match these filters</p>
+    <p class="mt-1 text-sm text-slate-500">Try a different search term or remove a service filter.</p>
+    <button type="button" id="clear-filters-empty"
+            class="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+      {%- include icon.html name="x" class="h-4 w-4" -%}
+      Clear filters
+    </button>
+  </div>
+</section>

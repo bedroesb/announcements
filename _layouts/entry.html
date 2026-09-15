@@ -1,0 +1,184 @@
+---
+layout: default
+---
+
+{%- assign level_key = page.severity | default: page.type | default: "info" -%}
+{%- assign level = site.data.levels[level_key] -%}
+{%- unless level -%}{%- assign level = site.data.levels.info -%}{%- endunless -%}
+
+{%- assign now_ts = site.time | date: "%s" | plus: 0 -%}
+{%- assign start_ts = page.start | date: "%s" | plus: 0 -%}
+{%- if page.end -%}{%- assign end_ts = page.end | date: "%s" | plus: 0 -%}{%- else -%}{%- assign end_ts = 0 -%}{%- endif -%}
+
+{%- if end_ts > 0 and end_ts <= now_ts -%}
+  {%- assign state = "closed" -%}
+{%- elsif start_ts > now_ts -%}
+  {%- assign state = "scheduled" -%}
+{%- else -%}
+  {%- assign state = "ongoing" -%}
+{%- endif -%}
+
+{%- if page.kind == "announcement" -%}
+  {%- assign kind_label = "Announcement" -%}
+  {%- assign closed_label = "Closed" -%}
+  {%- assign ongoing_label = "Current" -%}
+{%- else -%}
+  {%- assign kind_label = "Incident" -%}
+  {%- assign closed_label = "Resolved" -%}
+  {%- assign ongoing_label = "Ongoing" -%}
+{%- endif -%}
+
+<article class="js-entry-state pb-4"
+         data-kind="{{ page.kind | default: 'incident' }}"
+         data-level="{{ level_key }}"
+         data-start="{{ page.start | date_to_xmlschema }}"
+         {% if end_ts > 0 %}data-end="{{ page.end | date_to_xmlschema }}"{% endif %}>
+  <!-- Header -->
+  <header class="relative isolate overflow-hidden border-b border-slate-200 bg-white">
+    <span class="absolute inset-x-0 top-0 h-1 {{ level.dot }}" aria-hidden="true"></span>
+
+    <div class="mx-auto max-w-3xl px-4 pb-10 pt-8 sm:px-6">
+      <a href="{{ '/' | relative_url }}#history"
+         class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-vib-700">
+        {%- include icon.html name="arrow-left" class="h-4 w-4" -%}
+        Back to status
+      </a>
+
+      <div class="mt-6 flex items-start gap-4">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl {{ level.icon_bg }} {{ level.icon_text }} ring-1 ring-inset ring-black/5">
+          {%- include icon.html name=level.icon class="h-6 w-6" -%}
+        </span>
+
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            {%- include level-badge.html level=level_key -%}
+            <span class="js-status-pill inline-flex items-center gap-1.5 rounded-full bg-slate-900/5 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              {%- if state == "ongoing" -%}
+                <span class="relative flex h-2 w-2">
+                  <span class="absolute inline-flex h-full w-full animate-ping rounded-full {{ level.dot }} opacity-75"></span>
+                  <span class="relative inline-flex h-2 w-2 rounded-full {{ level.dot }}"></span>
+                </span>
+                <span class="js-pill-label">{{ ongoing_label }}</span>
+              {%- elsif state == "scheduled" -%}
+                {%- include icon.html name="calendar-days" class="h-3.5 w-3.5" -%}
+                <span class="js-pill-label">Scheduled</span>
+              {%- else -%}
+                {%- include icon.html name="check" class="h-3.5 w-3.5" -%}
+                <span class="js-pill-label">{{ closed_label }}</span>
+              {%- endif -%}
+            </span>
+            <span class="text-xs font-medium text-slate-500">{{ kind_label }}</span>
+          </div>
+
+          <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl">{{ page.title }}</h1>
+
+          {%- if page.summary %}
+          <p class="mt-3 text-base leading-relaxed text-slate-600">{{ page.summary | strip_newlines }}</p>
+          {%- endif %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto max-w-3xl px-4 sm:px-6">
+    <!-- Metadata -->
+    <dl class="mt-8 grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-3">
+      <div class="bg-white p-4">
+        <dt class="js-start-label flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          {%- include icon.html name="clock" class="h-3.5 w-3.5" -%}
+          Start
+        </dt>
+        <dd class="mt-1.5 text-sm font-medium text-slate-800">
+          <time datetime="{{ page.start | date_to_xmlschema }}">{{ page.start | date: "%-d %B %Y, %H:%M" }}</time>
+          <span class="js-relative block text-xs font-normal text-slate-400" data-time="{{ page.start | date_to_xmlschema }}"></span>
+        </dd>
+      </div>
+
+      <div class="bg-white p-4">
+        <dt class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          {%- include icon.html name="hourglass" class="h-3.5 w-3.5" -%}
+          End
+        </dt>
+        <dd class="mt-1.5 text-sm font-medium text-slate-800">
+          {%- if end_ts > 0 -%}
+            <time datetime="{{ page.end | date_to_xmlschema }}">{{ page.end | date: "%-d %B %Y, %H:%M" }}</time>
+            <span class="js-end-note block text-xs font-normal text-slate-400"{% if state == "closed" %} hidden{% endif %}>expected</span>
+          {%- else -%}
+            <span class="text-slate-400">Still open</span>
+          {%- endif -%}
+        </dd>
+      </div>
+
+      <div class="bg-white p-4">
+        <dt class="js-duration-label flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          {%- include icon.html name="timer" class="h-3.5 w-3.5" -%}
+          Duration
+        </dt>
+        <dd class="mt-1.5 text-sm font-medium text-slate-800">
+          <span class="js-duration">
+            {%- if end_ts > 0 -%}
+              {%- assign span = end_ts | minus: start_ts -%}{% include duration.html seconds=span %}
+            {%- else -%}
+              {%- assign span = now_ts | minus: start_ts -%}{% include duration.html seconds=span %}
+            {%- endif -%}
+          </span>
+          <span class="js-duration-note text-xs font-normal text-slate-400"{% if state == "closed" %} hidden{% endif %}>and counting</span>
+        </dd>
+      </div>
+    </dl>
+
+    {%- if page.services_affected and page.services_affected.size > 0 %}
+    <div class="mt-6">
+      <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400">Services affected</h2>
+      <div class="mt-2">
+        {%- include service-tags.html entry=page -%}
+      </div>
+    </div>
+    {%- endif %}
+
+    {%- if page.updates and page.updates.size > 0 %}
+    <section class="mt-10" aria-labelledby="updates-heading">
+      <h2 id="updates-heading" class="text-lg font-bold tracking-tight text-slate-900">Updates</h2>
+      <div class="relative mt-4">
+        <span class="timeline-line" aria-hidden="true"></span>
+        <ol>
+        {%- assign sorted_updates = page.updates | sort: "time" | reverse -%}
+        {%- for u in sorted_updates %}
+        <li class="relative pb-5 pl-11">
+          <span class="absolute left-0 top-1 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-vib-50 text-vib-600 ring-4 ring-slate-50">
+            {%- include icon.html name="circle-dot" class="h-4 w-4" -%}
+          </span>
+          <div class="rounded-xl border border-slate-200 bg-white p-4">
+            <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-800">
+              {{ u.status | default: "Update" }}
+              <time class="text-xs font-normal text-slate-400" datetime="{{ u.time | date_to_xmlschema }}">
+                {{ u.time | date: "%-d %b %Y, %H:%M" }}
+              </time>
+            </p>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ u.body | strip_newlines }}</p>
+          </div>
+        </li>
+        {%- endfor %}
+        </ol>
+      </div>
+    </section>
+    {%- endif %}
+
+    <div class="prose prose-slate mt-10 max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-a:font-medium prose-a:text-vib-700 prose-a:underline-offset-2 hover:prose-a:text-vib-900 prose-strong:text-slate-900 prose-code:rounded prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none">
+      {{ content }}
+    </div>
+
+    <div class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6 text-sm">
+      <a href="{{ '/' | relative_url }}#history"
+         class="inline-flex items-center gap-1.5 font-medium text-slate-500 transition hover:text-vib-700">
+        {%- include icon.html name="arrow-left" class="h-4 w-4" -%}
+        Back to status
+      </a>
+      <a href="{{ site.repo }}/edit/main/{{ page.path }}" rel="noopener"
+         class="inline-flex items-center gap-1.5 font-medium text-slate-500 transition hover:text-vib-700">
+        {%- include icon.html name="square-arrow-out-up-right" class="h-4 w-4" -%}
+        Suggest an edit
+      </a>
+    </div>
+  </div>
+</article>
