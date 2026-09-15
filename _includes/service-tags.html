@@ -1,0 +1,24 @@
+{%- comment -%}
+  Clickable service tags. On the index page JS intercepts the click and adds
+  the service to the active filter set; anywhere else (and without JS) the
+  link simply navigates to the filtered history.
+  Params: entry
+{%- endcomment -%}
+{%- assign entry = include.entry -%}
+{%- if entry.services_affected and entry.services_affected.size > 0 -%}
+<ul class="flex flex-wrap items-center gap-1.5">
+  {%- for sid in entry.services_affected -%}
+    {%- assign svc = site.data.services | where: "id", sid | first -%}
+    {%- assign svc_name = svc.name | default: sid -%}
+    <li>
+      <a href="{{ '/' | relative_url }}?services={{ sid | uri_escape }}#history"
+         data-service-filter="{{ sid }}"
+         title="Show history for {{ svc_name | escape }}"
+         class="inline-flex items-center gap-1 rounded-md bg-white/70 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200 transition hover:bg-vib-50 hover:text-vib-700 hover:ring-vib-300">
+        {%- include icon.html name="tag" class="h-3 w-3 shrink-0 opacity-60" -%}
+        {{ svc_name }}
+      </a>
+    </li>
+  {%- endfor -%}
+</ul>
+{%- endif -%}

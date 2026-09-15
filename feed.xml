@@ -1,0 +1,37 @@
+---
+layout: null
+permalink: /feed.xml
+sitemap: false
+---
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ site.title | escape }}</title>
+  <subtitle>{{ site.description | strip_newlines | escape }}</subtitle>
+  <link href="{{ '/feed.xml' | absolute_url }}" rel="self" type="application/atom+xml"/>
+  <link href="{{ '/' | absolute_url }}" rel="alternate" type="text/html"/>
+  <updated>{{ site.time | date_to_xmlschema }}</updated>
+  <id>{{ '/' | absolute_url }}</id>
+  <author><name>{{ site.org.name | escape }}</name></author>
+
+  {%- assign all_entries = site.incidents | concat: site.announcements | sort: "start" | reverse -%}
+  {%- for e in all_entries limit: 40 -%}
+  {%- assign level_key = e.severity | default: e.type | default: "info" -%}
+  {%- assign level = site.data.levels[level_key] -%}
+  <entry>
+    <title>[{{ level.label | default: 'Info' }}] {{ e.title | escape }}</title>
+    <link href="{{ e.url | absolute_url }}" rel="alternate" type="text/html"/>
+    <id>{{ e.url | absolute_url }}</id>
+    <published>{{ e.start | date_to_xmlschema }}</published>
+    <updated>{% if e.end %}{{ e.end | date_to_xmlschema }}{% else %}{{ e.start | date_to_xmlschema }}{% endif %}</updated>
+    <category term="{{ e.kind | default: 'incident' }}"/>
+    <category term="level:{{ level_key }}"/>
+    {%- for sid in e.services_affected %}
+    <category term="service:{{ sid }}"/>
+    {%- endfor %}
+    {%- if e.summary %}
+    <summary type="text">{{ e.summary | strip_newlines | escape }}</summary>
+    {%- endif %}
+    <content type="html">{{ e.content | strip | escape }}</content>
+  </entry>
+  {%- endfor %}
+</feed>

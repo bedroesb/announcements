@@ -1,0 +1,16 @@
+{%- comment -%}
+  Human readable duration. Params: seconds (integer)
+{%- endcomment -%}
+{%- assign total = include.seconds | plus: 0 -%}
+{%- assign days = total | divided_by: 86400 -%}
+{%- assign hours = total | modulo: 86400 | divided_by: 3600 -%}
+{%- assign minutes = total | modulo: 3600 | divided_by: 60 -%}
+{%- if days > 0 -%}
+  {{ days }} d{% if hours > 0 %} {{ hours }} h{% endif %}
+{%- elsif hours > 0 -%}
+  {{ hours }} h{% if minutes > 0 %} {{ minutes }} min{% endif %}
+{%- elsif minutes > 0 -%}
+  {{ minutes }} min
+{%- else -%}
+  &lt; 1 min
+{%- endif -%}

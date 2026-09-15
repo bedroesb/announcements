@@ -1,0 +1,74 @@
+# --- Site -------------------------------------------------------------------
+title: COMPANY NAME Status
+tagline: Service status, incidents and announcements
+description: >-
+  Current status, incident reports and announcements for the services
+  operated and supported by COMPANY NAME.
+
+# Change these two when the repository moves or is renamed.
+# For https://bedroesb.github.io/announcements/ -> url + baseurl below.
+url: "https://bedroesb.github.io"
+baseurl: "/announcements"
+
+repo: "https://github.com/bedroesb/announcements"
+org:
+  name: "COMPANY NAME"
+  url: "https://datacore.vib.be"
+  support_email: "datacore@vib.be"
+
+lang: en
+timezone: Europe/Brussels
+
+# --- Content ----------------------------------------------------------------
+collections:
+  incidents:
+    output: true
+    permalink: /incidents/:name/
+  announcements:
+    output: true
+    permalink: /announcements/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: incidents
+    values:
+      layout: entry
+      kind: incident
+  - scope:
+      path: ""
+      type: announcements
+    values:
+      layout: entry
+      kind: announcement
+
+# --- Build ------------------------------------------------------------------
+# Scheduled work is dated in the future by definition; without this Jekyll
+# refuses to write those pages (default: future: false).
+future: true
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+plugins:
+  - jekyll-sitemap
+
+sass:
+  style: compressed
+
+exclude:
+  - .github/
+  - Gemfile
+  - Gemfile.lock
+  - LICENSE
+  - README.md
+  - node_modules/
+  - package-lock.json
+  - package.json
+  - script/
+  - vendor/
+  - assets/css/tailwind.css # Tailwind input; the compiled file is assets/css/main.css
+
+port: 3002

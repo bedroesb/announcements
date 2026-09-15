@@ -1,0 +1,23 @@
+<header class="sticky top-0 z-40 border-b border-white/10 bg-vib-900/95 backdrop-blur supports-[backdrop-filter]:bg-vib-900/80">
+  <div class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+    <a href="{{ '/' | relative_url }}" class="group flex items-center gap-3 rounded-lg px-1 py-1 text-white">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-vib-500 to-vib-accent text-white shadow-sm">
+        {% include icon.html name="activity" class="h-5 w-5" %}
+      </span>
+      <span class="leading-tight">
+        <span class="block text-sm font-semibold tracking-tight">{{ site.org.name }}</span>
+        <span class="block text-xs font-medium text-vib-200/80">Status &amp; announcements</span>
+      </span>
+    </a>
+
+    <nav class="flex items-center gap-1 text-sm font-medium text-vib-100" aria-label="Main">
+      <!-- <a href="{{ '/' | relative_url }}"
+         class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">Status</a> -->
+      <a href="{{ '/feed.xml' | relative_url }}"
+         class="flex items-center gap-1.5 rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">
+        {% include icon.html name="rss" class="h-4 w-4" %}
+        <span>Subscribe</span>
+      </a>
+    </nav>
+  </div>
+</header>

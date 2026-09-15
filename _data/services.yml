@@ -1,0 +1,41 @@
+# Controlled vocabulary for the `services_affected:` front matter field.
+#
+# Use the `id` in front matter, e.g.
+#   services_affected: [galaxy, rdm-portal]
+#
+# Adding a service = adding an entry here. `script/validate.rb` (and the CI
+# check on every pull request) rejects ids that are not listed below.
+
+- id: rdm-portal
+  name: RDM Portal
+  description: Research data management guidance, policies and templates.
+  url: https://datacore.vib.be
+
+- id: galaxy
+  name: Galaxy
+  description: Web-based platform for data-intensive bioinformatics analysis.
+  url: https://usegalaxy.be
+
+- id: eln
+  name: Electronic Lab Notebook
+  description: ELN used across VIB research groups.
+
+- id: file-transfer
+  name: File Transfer
+  description: Large file exchange service for internal and external partners.
+
+- id: storage
+  name: Research Storage
+  description: Shared project storage and archive volumes.
+
+- id: helpdesk
+  name: Helpdesk
+  description: Ticketing and support channel of COMPANY NAME.
+
+- id: training
+  name: Training Platform
+  description: Registration and course materials for Data Core trainings.
+
+- id: authentication
+  name: Login / SSO
+  description: Single sign-on used by the Data Core services.
