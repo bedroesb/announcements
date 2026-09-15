@@ -18,13 +18,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
       - name: Validate front matter
         run: ruby script/validate.rb
 
       - name: Install Tailwind
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Build stylesheet
         run: npm run css
